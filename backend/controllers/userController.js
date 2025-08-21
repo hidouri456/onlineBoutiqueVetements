@@ -59,4 +59,36 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get all
+// @desc    Get all users
+// @route   GET /api/users
+// @access  Private/Admin
+const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await User.find({}).select('-password');
+  res.json(users);
+});
+
+// @desc    Delete a user
+// @route   DELETE /api/users/:id
+// @access  Private/SuperAdmin
+const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+
+  if (user) {
+    if (user.role === 'superadmin') {
+      res.status(400);
+      throw new Error('Cannot delete SuperAdmin user');
+    }
+    await User.deleteOne({ _id: user._id });
+    res.json({ message: 'User removed' });
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+export {
+  loginUser,
+  registerUser,
+  getAllUsers,
+  deleteUser,
+};

@@ -1,8 +1,21 @@
 import { openai } from "@ai-sdk/openai"
 import { streamText } from "ai"
 
+function getOpenAiKey() {
+  const key = process.env.OPENAI_API_KEY || process.env.OPENAI_API_key
+  return key
+}
+
 export async function POST(req: Request) {
   const { messages } = await req.json()
+
+  const key = getOpenAiKey()
+  if (!key || key === "sk-REPLACE_ME" || key.trim() === "") {
+    return new Response(JSON.stringify({ error: 'OpenAI API key not configured. Set OPENAI_API_KEY in your .env.local (example: OPENAI_API_KEY=sk-...)' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
 
   const systemPrompt = `Tu es l'assistant virtuel de "Boutique Mode", une boutique en ligne française spécialisée dans les vêtements pour toute la famille (femmes, hommes, enfants).
 
@@ -49,6 +62,7 @@ Tu peux aider avec:
 
 Commence toujours par être accueillant et demande comment tu peux aider le client aujourd'hui.`
 
+  // Note: @ai-sdk/openai will read the OPENAI_API_KEY from process.env automatically
   const result = await streamText({
     model: openai("gpt-4o-mini"),
     system: systemPrompt,

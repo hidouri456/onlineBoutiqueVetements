@@ -12,9 +12,25 @@ const addOrderItems = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('No order items');
   } else {
-    const order = new Order({
+       const order = new Order({
       orderItems: orderItems.map((item) => ({
         ...item,
-        
         product: item._id,
+        _id: undefined, // Empêche d'utiliser l'ID du produit comme ID de l'article de commande
       })),
+      user: req.user._id,
+      shippingAddress,
+      paymentMethod,
+      itemsPrice,
+      taxPrice,
+      shippingPrice,
+      totalPrice,
+    });
+
+    const createdOrder = await order.save();
+    res.status(201).json(createdOrder);
+  }
+});
+
+export { addOrderItems };
+
