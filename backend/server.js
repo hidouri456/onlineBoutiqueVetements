@@ -8,6 +8,7 @@ import userRoutes from './routes/userRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import statsRoutes from './routes/statsRoutes.js';
 import chatbotRoutes from './routes/chatbotRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -17,7 +18,8 @@ connectDB();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+// allow credentials so the frontend can receive/set HttpOnly cookies
+app.use(cors({ origin: true, credentials: true }));
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,6 +33,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/auth', authRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

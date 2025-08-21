@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -15,11 +16,46 @@ export default function ConnexionPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement authentication logic
-    console.log("[v0] Login attempt:", { email, password })
+    setError(null)
+    setLoading(true)
+
+    fetch('http://localhost:5001/api/users/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email, password }),
+    })
+      .then(async (res) => {
+        setLoading(false)
+        if (!res.ok) {
+          const text = await res.text()
+          throw new Error(text || 'Login failed')
+        }
+        return res.json()
+      })
+      .then((data) => {
+  // store role then redirect (token is in HttpOnly cookie)
+        if (data.role) {
+          localStorage.setItem('role', data.role)
+        }
+        // redirect admins to admin panel
+        if (data.role === 'admin' || data.role === 'superadmin') {
+          router.push('/admin')
+        } else {
+          router.push('/')
+        }
+      })
+      .catch((err) => {
+        console.error('Login error', err)
+        setError(err.message || 'Login failed')
+        setLoading(false)
+      })
   }
 
   return (
@@ -90,9 +126,10 @@ export default function ConnexionPage() {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full">
-                Se connecter
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Connexion...' : 'Se connecter'}
               </Button>
+              {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
             </form>
 
             <Separator className="my-6" />

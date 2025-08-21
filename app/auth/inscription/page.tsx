@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -15,6 +16,8 @@ import Link from "next/link"
 export default function InscriptionPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const router = useRouter()
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -27,8 +30,39 @@ export default function InscriptionPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement registration logic
-    console.log("[v0] Registration attempt:", formData)
+    // Basic validation
+    if (formData.password !== formData.confirmPassword) {
+      alert('Les mots de passe ne correspondent pas')
+      return
+    }
+
+    setSubmitting(true)
+
+  // Send registration to backend. Update the URL/port if your backend runs elsewhere.
+  fetch('http://localhost:5001/api/users/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+      }),
+    })
+      .then(async (res) => {
+        setSubmitting(false)
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          throw new Error(data.message || 'Erreur lors de l\'inscription')
+        }
+        // On success, redirect to login
+        router.push('/auth/connexion')
+      })
+      .catch((err) => {
+        setSubmitting(false)
+        console.error(err)
+        alert(err.message || 'Erreur serveur')
+      })
   }
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -176,8 +210,8 @@ export default function InscriptionPage() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full">
-                Créer mon compte
+              <Button type="submit" className="w-full" disabled={submitting}>
+                {submitting ? 'Création...' : 'Créer mon compte'}
               </Button>
             </form>
 

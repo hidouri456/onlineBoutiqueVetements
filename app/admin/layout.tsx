@@ -9,6 +9,8 @@ import { LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Settings, Log
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useEffect } from 'react'
 
 const navigation = [
   { name: "Tableau de bord", href: "/admin", icon: LayoutDashboard },
@@ -26,9 +28,38 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const router = useRouter()
+
+  async function handleLogout() {
+    try {
+  const res = await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+      if (res.ok) {
+        // clear stored auth info
+        try { localStorage.removeItem('token'); localStorage.removeItem('role'); } catch (e) {}
+        router.push('/')
+      } else {
+        console.error('Logout failed')
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  // client-side guard: ensure user is admin
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('token')
+      const role = localStorage.getItem('role')
+      if (!token || !(role === 'admin' || role === 'superadmin')) {
+        router.replace('/auth/connexion')
+      }
+    } catch (e) {
+      router.replace('/auth/connexion')
+    }
+  }, [router])
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-muted/30 flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
@@ -36,11 +67,13 @@ export default function AdminLayout({
 
       {/* Sidebar */}
       <div
+        // dev-outline: add ring to visualize sidebar bounds (remove in production)
         className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-background border-r border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
+        fixed inset-y-0 left-0 top-0 z-50 w-64 bg-background border-r border-border transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        lg:translate-x-0 lg:static lg:relative lg:transform-none lg:h-screen ring-2 ring-red-200/40
       `}
-      >
+        >
         <div className="flex items-center justify-between h-16 px-6 border-b border-border">
           <h1 className="text-xl font-serif font-bold">Admin Panel</h1>
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(false)}>
@@ -48,7 +81,7 @@ export default function AdminLayout({
           </Button>
         </div>
 
-        <nav className="p-4 space-y-2">
+  <nav className="p-4 space-y-2 pb-24">
           {navigation.map((item) => {
             const isActive = pathname === item.href
             return (
@@ -72,7 +105,7 @@ export default function AdminLayout({
           })}
         </nav>
 
-        <div className="absolute bottom-4 left-4 right-4">
+  <div className="absolute bottom-4 left-4 right-4">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
@@ -83,7 +116,7 @@ export default function AdminLayout({
                   <p className="text-sm font-medium">Admin User</p>
                   <p className="text-xs text-muted-foreground">admin@boutique.com</p>
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleLogout}>
                   <LogOut className="h-4 w-4" />
                 </Button>
               </div>
@@ -93,9 +126,9 @@ export default function AdminLayout({
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="flex-1">
         {/* Top bar */}
-        <header className="h-16 bg-background border-b border-border flex items-center justify-between px-6">
+        <header className="sticky top-0 z-10 h-16 bg-background border-b border-border flex items-center justify-between px-6">
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>

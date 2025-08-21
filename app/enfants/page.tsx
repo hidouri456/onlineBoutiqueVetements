@@ -17,86 +17,86 @@ import Link from "next/link"
 const products = [
   {
     id: 1,
-    name: "Chemise en Coton Premium",
-    price: 79,
-    originalPrice: 110,
-    image: "/premium-cotton-shirt.png",
-    category: "Chemises",
-    sizes: ["S", "M", "L", "XL"],
-    colors: ["Blanc", "Bleu ciel", "Gris"],
+    name: "T-shirt Dinosaure Rigolo",
+    price: 19,
+    image: "/t-shirt-dinosaure.png",
+    category: "T-shirts",
+    sizes: ["2A", "4A", "6A", "8A"],
+    colors: ["Vert", "Bleu", "Gris"],
     isNew: true,
-    isSale: true,
-  },
-  {
-    id: 2,
-    name: "Polo Classique Piqué",
-    price: 55,
-    image: "/classic-pique-polo.png",
-    category: "Polos",
-    sizes: ["S", "M", "L", "XL", "XXL"],
-    colors: ["Noir", "Bleu marine", "Blanc"],
-    isNew: false,
     isSale: false,
   },
   {
+    id: 2,
+    name: "Robe à Fleurs Tourbillonnante",
+    price: 35,
+    originalPrice: 45,
+    image: "/robe-fleurs.png",
+    category: "Robes",
+    sizes: ["4A", "6A", "8A", "10A"],
+    colors: ["Rose", "Jaune", "Bleu ciel"],
+    isNew: false,
+    isSale: true,
+  },
+  {
     id: 3,
-    name: "Jean Slim Fit",
-    price: 85,
-    image: "/slim-fit-jeans.png",
-    category: "Pantalons",
-    sizes: ["30", "32", "34", "36", "38"],
-    colors: ["Bleu brut", "Noir délavé"],
+    name: "Ensemble Pyjama Étoilé",
+    price: 25,
+    image: "/pyjama-etoile.png",
+    category: "Pyjamas",
+    sizes: ["2A", "4A", "6A"],
+    colors: ["Bleu nuit", "Gris chiné"],
     isNew: true,
     isSale: false,
   },
   {
     id: 4,
-    name: "Veste Bomber Urbaine",
-    price: 120,
-    image: "/urban-bomber-jacket.png",
-    category: "Vestes",
-    sizes: ["S", "M", "L"],
-    colors: ["Kaki", "Noir"],
+    name: "Jean Doublé Polaire",
+    price: 40,
+    image: "/jean-polaire.png",
+    category: "Pantalons",
+    sizes: ["6A", "8A", "10A"],
+    colors: ["Bleu brut"],
     isNew: false,
     isSale: false,
   },
   {
     id: 5,
-    name: "Pull en Laine Mérinos",
-    price: 110,
-    originalPrice: 150,
-    image: "/merino-wool-sweater.png",
-    category: "Pulls",
-    sizes: ["S", "M", "L", "XL"],
-    colors: ["Gris chiné", "Bleu marine", "Bordeaux"],
-    isNew: false,
-    isSale: true,
-  },
-  {
-    id: 6,
-    name: "Pantalon Chino Confort",
-    price: 69,
-    image: "/comfort-chino-pants.png",
-    category: "Pantalons",
-    sizes: ["30", "32", "34", "36", "38"],
-    colors: ["Beige", "Gris anthracite", "Vert olive"],
+    name: "Sweat à Capuche Héroïque",
+    price: 39,
+    image: "/sweat-heros.png",
+    category: "Sweats",
+    sizes: ["4A", "6A", "8A", "10A"],
+    colors: ["Rouge", "Bleu roi"],
     isNew: true,
     isSale: false,
   },
+  {
+    id: 6,
+    name: "Legging Confortable à Motifs",
+    price: 15,
+    originalPrice: 20,
+    image: "/legging-motifs.png",
+    category: "Leggings",
+    sizes: ["2A", "4A", "6A", "8A"],
+    colors: ["Rose", "Violet", "Multicolore"],
+    isNew: false,
+    isSale: true,
+  },
 ]
 
-export default function HommesPage() {
+export default function EnfantsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedSizes, setSelectedSizes] = useState<string[]>([])
   const [selectedColors, setSelectedColors] = useState<string[]>([])
-  const [priceRange, setPriceRange] = useState([0, 200])
+  const [priceRange, setPriceRange] = useState([0, 100])
   const [sortBy, setSortBy] = useState("newest")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
 
-  const categories = ["Chemises", "Polos", "Pantalons", "Vestes", "Pulls"]
-  const sizes = ["S", "M", "L", "XL", "XXL", "30", "32", "34", "36", "38"]
-  const colors = ["Noir", "Blanc", "Gris", "Beige", "Bleu", "Vert", "Bordeaux", "Kaki"]
+  const categories = ["T-shirts", "Robes", "Pyjamas", "Pantalons", "Sweats", "Leggings"]
+  const sizes = ["2A", "4A", "6A", "8A", "10A"]
+  const colors = ["Vert", "Bleu", "Gris", "Rose", "Jaune", "Rouge", "Violet", "Multicolore"]
 
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -198,7 +198,7 @@ export default function HommesPage() {
 
             <div>
               <h3 className="font-serif font-semibold mb-4">Tailles</h3>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {sizes.map((size) => (
                   <div key={size} className="flex items-center space-x-2">
                     <Checkbox
@@ -281,7 +281,66 @@ export default function HommesPage() {
                           />
                         </div>
                       </div>
-                      {/* Add other filter sections here */}
+                      <div>
+                        <h3 className="font-serif font-semibold mb-4">Catégorie</h3>
+                        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Toutes les catégories" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Toutes les catégories</SelectItem>
+                            {categories.map((category) => (
+                              <SelectItem key={category} value={category}>
+                                {category}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <h3 className="font-serif font-semibold mb-4">Tailles</h3>
+                        <div className="grid grid-cols-3 gap-2">
+                          {sizes.map((size) => (
+                            <div key={`mobile-size-div-${size}`} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`mobile-size-${size}`}
+                                checked={selectedSizes.includes(size)}
+                                onCheckedChange={(checked) => handleSizeChange(size, checked as boolean)}
+                              />
+                              <Label htmlFor={`mobile-size-${size}`} className="text-sm">
+                                {size}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="font-serif font-semibold mb-4">Couleurs</h3>
+                        <div className="grid grid-cols-2 gap-2">
+                          {colors.map((color) => (
+                            <div key={`mobile-color-div-${color}`} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`mobile-color-${color}`}
+                                checked={selectedColors.includes(color)}
+                                onCheckedChange={(checked) => handleColorChange(color, checked as boolean)}
+                              />
+                              <Label htmlFor={`mobile-color-${color}`} className="text-sm">
+                                {color}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="font-serif font-semibold mb-4">Prix</h3>
+                        <div className="space-y-4">
+                          <Slider value={priceRange} onValueChange={setPriceRange} max={100} min={0} step={5} className="w-full" />
+                          <div className="flex items-center justify-between text-sm text-muted-foreground">
+                            <span>€{priceRange[0]}</span>
+                            <span>€{priceRange[1]}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </SheetContent>
                 </Sheet>

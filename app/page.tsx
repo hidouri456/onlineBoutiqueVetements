@@ -1,12 +1,41 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Search, Heart, Menu, User } from "lucide-react"
 import Link from "next/link"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { CartIcon } from "@/components/cart-icon"
 import { AddToCartButton } from "@/components/add-to-cart-button"
+import { Input } from "@/components/ui/input"
 
 export default function HomePage() {
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [query, setQuery] = useState("")
+  const router = useRouter()
+
+  function openSearch() {
+    setSearchOpen(true)
+  }
+
+  function closeSearch() {
+    setSearchOpen(false)
+    setQuery("")
+  }
+
+  function submitSearch(e?: React.FormEvent) {
+    e?.preventDefault()
+    const q = query.trim()
+    closeSearch()
+    if (q) router.push(`/?q=${encodeURIComponent(q)}`)
+  }
+
+  function goToAccount() {
+    router.push('/connexion')
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -36,14 +65,14 @@ export default function HomePage() {
 
             {/* Actions */}
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={openSearch}>
                 <Search className="h-5 w-5" />
               </Button>
               <Button variant="ghost" size="icon">
                 <Heart className="h-5 w-5" />
               </Button>
               <CartIcon />
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={goToAccount}>
                 <User className="h-5 w-5" />
               </Button>
               <Button variant="ghost" size="icon" className="md:hidden">
@@ -53,6 +82,25 @@ export default function HomePage() {
           </div>
         </div>
       </header>
+
+      {/* Search overlay/modal */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/40">
+          <div className="w-full max-w-2xl px-4">
+            <form onSubmit={submitSearch} className="bg-background border border-border rounded-lg p-4 flex gap-2">
+              <Input
+                autoFocus
+                placeholder="Rechercher..."
+                value={query}
+                onChange={(e) => setQuery((e.target as HTMLInputElement).value)}
+                className="flex-1"
+              />
+              <Button type="submit">Rechercher</Button>
+              <Button variant="ghost" onClick={closeSearch}>Annuler</Button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section className="relative bg-muted">

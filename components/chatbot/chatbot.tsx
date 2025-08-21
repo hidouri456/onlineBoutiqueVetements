@@ -30,7 +30,7 @@ export function Chatbot() {
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading, append } = useChat({
     api: "/api/chat",
     initialMessages: [
       {
@@ -40,6 +40,16 @@ export function Chatbot() {
       },
     ],
   })
+
+  const [mockMode, setMockMode] = useState(false)
+
+  useEffect(() => {
+    // check if server is in mock mode
+    fetch('/api/chat')
+      .then((r) => r.json())
+      .then((j) => setMockMode(!!j.mock))
+      .catch(() => setMockMode(true))
+  }, [])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -61,6 +71,20 @@ export function Chatbot() {
     const formEvent = {
       preventDefault: () => {},
     } as React.FormEvent<HTMLFormElement>
+
+    // If mockMode, call our API directly and append the mock response
+    if (mockMode) {
+      // append user message
+      append({ id: String(Date.now()), role: 'user', content: action })
+      fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: [{ role: 'user', content: action }] }) })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data?.message) {
+            append({ id: String(Date.now() + 1), role: 'assistant', content: data.message })
+          }
+        })
+      return
+    }
 
     handleSubmit(formEvent)
   }

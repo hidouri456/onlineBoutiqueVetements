@@ -6,13 +6,22 @@ function getOpenAiKey() {
   return key
 }
 
+export async function GET() {
+  const key = getOpenAiKey()
+  const isMock = !key || key === "sk-REPLACE_ME" || key.trim() === ""
+  return new Response(JSON.stringify({ mock: isMock }), { headers: { 'Content-Type': 'application/json' } })
+}
+
 export async function POST(req: Request) {
   const { messages } = await req.json()
 
   const key = getOpenAiKey()
   if (!key || key === "sk-REPLACE_ME" || key.trim() === "") {
-    return new Response(JSON.stringify({ error: 'OpenAI API key not configured. Set OPENAI_API_KEY in your .env.local (example: OPENAI_API_KEY=sk-...)' }), {
-      status: 500,
+    // Fallback mock: generate a simple helpful response in French without calling OpenAI
+    const userMessages = messages.filter((m: any) => m.role === 'user').map((m: any) => m.content).join('\n')
+    const mockReply = `Bonjour ! Je suis le mode dégradé du chatbot. Je n'ai pas accès à l'API OpenAI ici. Vous avez dit : "${userMessages || '...'}". Comment puis-je vous aider autrement ?`
+    return new Response(JSON.stringify({ message: mockReply }), {
+      status: 200,
       headers: { 'Content-Type': 'application/json' },
     })
   }
