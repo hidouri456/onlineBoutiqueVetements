@@ -59,34 +59,39 @@ export function Chatbot() {
     scrollToBottom()
   }, [messages])
 
-  const handleQuickAction = (action: string) => {
+  const handleQuickAction = async (action: string) => {
+    // set input visually
     const syntheticEvent = {
       preventDefault: () => {},
       target: { value: action },
     } as React.ChangeEvent<HTMLInputElement>
-
     handleInputChange(syntheticEvent)
 
-    // Simulate form submission
-    const formEvent = {
-      preventDefault: () => {},
-    } as React.FormEvent<HTMLFormElement>
-
-    // If mockMode, call our API directly and append the mock response
+    // If mockMode, call backend content-aware endpoint
     if (mockMode) {
-      // append user message
       append({ id: String(Date.now()), role: 'user', content: action })
-      fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: [{ role: 'user', content: action }] }) })
-        .then((r) => r.json())
-        .then((data) => {
-          if (data?.message) {
-            append({ id: String(Date.now() + 1), role: 'assistant', content: data.message })
-          }
+      try {
+        const res = await fetch('http://localhost:5001/api/chatbot/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: action }),
         })
+        if (res.ok) {
+          const json = await res.json()
+          if (json.reply) append({ id: String(Date.now() + 1), role: 'assistant', content: json.reply })
+        } else {
+          append({ id: String(Date.now() + 1), role: 'assistant', content: "Désolé, le service de recherche est momentanément indisponible." })
+        }
+      } catch (err) {
+        append({ id: String(Date.now() + 1), role: 'assistant', content: "Erreur lors de la recherche de produits." })
+      }
+      // clear input
+      handleInputChange({ preventDefault: () => {}, target: { value: '' } } as React.ChangeEvent<HTMLInputElement>)
       return
     }
 
-    handleSubmit(formEvent)
+    // otherwise use the AI hook submission
+    handleSubmit({ preventDefault: () => {} } as React.FormEvent<HTMLFormElement>)
   }
 
   const formatTime = (date: Date) => {
@@ -214,18 +219,47 @@ export function Chatbot() {
 
             {/* Input */}
             <div className="p-4 border-t">
-              <form onSubmit={handleSubmit} className="flex gap-2">
-                <Input
-                  value={input}
-                  onChange={handleInputChange}
-                  placeholder="Tapez votre message..."
-                  disabled={isLoading}
-                  className="flex-1"
-                />
-                <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
-                  <Send className="h-4 w-4" />
-                </Button>
-              </form>
+                <form onSubmit={async (e) => {
+                  e.preventDefault()
+                  // if mock mode, forward to backend content search
+                  if (mockMode) {
+                    const message = input.trim()
+                    if (!message) return
+                    append({ id: String(Date.now()), role: 'user', content: message })
+                    try {
+                      const res = await fetch('http://localhost:5001/api/chatbot/ask', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message }),
+                      })
+                      if (res.ok) {
+                        const json = await res.json()
+                        if (json.reply) append({ id: String(Date.now() + 1), role: 'assistant', content: json.reply })
+                      } else {
+                        append({ id: String(Date.now() + 1), role: 'assistant', content: "Désolé, le service de recherche est indisponible." })
+                      }
+                    } catch (err) {
+                      append({ id: String(Date.now() + 1), role: 'assistant', content: "Erreur lors de la recherche." })
+                    }
+                    // clear input
+                    handleInputChange({ preventDefault: () => {}, target: { value: '' } } as React.ChangeEvent<HTMLInputElement>)
+                    return
+                  }
+
+                  // otherwise delegate to AI hook
+                  handleSubmit(e)
+                }} className="flex gap-2">
+                  <Input
+                    value={input}
+                    onChange={handleInputChange}
+                    placeholder="Tapez votre message..."
+                    disabled={isLoading}
+                    className="flex-1"
+                  />
+                  <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </form>
             </div>
           </Card>
         </div>
